@@ -31,6 +31,12 @@ struct RegExp
     QString head_isindex = "^(<isindex(( +)(" + href + "|prompt( *)=( *)\"(" + text + ")\")){0,1}>)";
     QString head_link = "^(<link(( +)(title( *)=( *)\"(" + text + ")\"|title( *)=( *)\"(Home|ToC|Index|Glossary|Copyright|Up|Next|Previous|Help|Bookmark)\"|rel( *)=( *)\"(" + text + ")\"))*>)";
     QString head_nextid = "^(<nextid( +)n=\"(Z|z)([0-9]{1,3})\">)";
+
+    // for body tags
+    QString body_text = "^([^(\<(.*)\>)]+)";
+    QString body_br = "^(<br( *)\/?>)";
+    QString body_hr = "^(<hr( *)\/?>)";
+    QString body_p = "^(<p>(.*)<\/p>)";
 };
 
 struct Attribute
@@ -88,7 +94,14 @@ private:
     Item head_link(Item item);
     Item head_nextid(Item item);
 
-//    Item head_tags()
+    // body tags
+    Item body_p(Item item);
+    Item body_text(Item item);
+    Item body_br(Item item);
+    Item body_hr(Item item);
+
+    // main funcs
+    void body_tag(Item &item);
 };
 
 #endif // PARSING_H

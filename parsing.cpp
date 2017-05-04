@@ -129,11 +129,9 @@ Item Parsing::head(Item item)
 
 Item Parsing::body(Item item)
 {
+    item.type = it_tag;
     item.tag = "body";
-    item.type = it_text;
-    int current_offset = _offset;
-    _offset += 6; // it is a length <head>, after parsing it's content just increase offset to this length
-    _offset = current_offset + item.data.length(); // -6 because we firstly increase to 6
+    this->body_tag(item);
     return item;
 }
 
@@ -228,5 +226,76 @@ Item Parsing::head_nextid(Item item)
     _offset += item.data.length();
     item.attributes = get_attributes(item.data);
     item.data = "";
+    return item;
+}
+
+// ============================================================================
+// ============================================================================
+// ============================================================================
+// head tags
+// ============================================================================
+// ============================================================================
+// ============================================================================
+void Parsing::body_tag(Item &item)
+{
+    int tag_length = item.data.length();
+    int tag_size = _offset + tag_length;
+    _offset += tag_length + 2; // it is a length <tag_name>, after parsing it's content just increase offset to this length
+
+    while(_offset < tag_size - (item.tag.length() + 3)) {
+        // we are inside <head> tag and don't stay at </head> (there are inside elements)
+        // 7 - size of "</head>", we should stay at '<' after all events
+        int old_offset = _offset;
+        Item text = event(this->body_text, _RegExp.body_text, "Text");
+        Item br = event(this->body_br, _RegExp.body_br, "BR");
+        Item hr = event(this->body_hr, _RegExp.body_hr, "HR");
+        Item p = event(this->body_p, _RegExp.body_p, "P");
+        if (_offset == old_offset) {
+            // nothing was happen, but we still stay at our position
+            item.type = it_error;
+            item.data = item.tag + " tag includes some strange symbols: " + item.data.mid(item.tag.length() + 2);
+            break;
+        } else {
+            if (text.type != it_error) item.children.append(text);
+            if (br.type != it_error) item.children.append(br);
+            if (hr.type != it_error) item.children.append(hr);
+            if (p.type != it_error) item.children.append(p);
+        }
+    }
+
+    _offset = tag_size + 1; // -6 because we firstly increase to 6
+}
+
+Item Parsing::body_p(Item item)
+{
+    item.type = it_text;
+    item.tag = "p";
+    this->body_tag(item);
+    return item;
+}
+
+Item Parsing::body_text(Item item)
+{
+    item.type = it_text;
+    item.tag = "";
+    _offset += item.data.length();
+    return item;
+}
+
+Item Parsing::body_br(Item item)
+{
+    item.type = it_text;
+    item.tag = "br";
+    _offset += item.data.length();
+    item.data = "";
+    return item;
+}
+
+Item Parsing::body_hr(Item item)
+{
+    item.type = it_text;
+    item.tag = "hr";
+    _offset += item.data.length();
+    item.data = "------------------------------------";
     return item;
 }
