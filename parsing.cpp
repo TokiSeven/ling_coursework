@@ -240,7 +240,7 @@ void Parsing::body_tag(Item &item)
 {
     int tag_length = item.data.length();
     int tag_size = _offset + tag_length;
-    _offset += tag_length + 2; // it is a length <tag_name>, after parsing it's content just increase offset to this length
+    _offset += 6; // it is a length <tag_name>, after parsing it's content just increase offset to this length
 
     while(_offset < tag_size - (item.tag.length() + 3)) {
         // we are inside <head> tag and don't stay at </head> (there are inside elements)
@@ -264,6 +264,7 @@ void Parsing::body_tag(Item &item)
     }
 
     _offset = tag_size + 1; // -6 because we firstly increase to 6
+    item.type = it_tag;
 }
 
 Item Parsing::body_p(Item item)
